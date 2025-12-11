@@ -1,0 +1,997 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agenda Anual 2026</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/es.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #f0f5ff;
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: white;
+            border-radius: 15px;
+            box-shadow: 0 5px 25px rgba(0, 0, 0, 0.08);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            height: calc(100vh - 40px);
+        }
+        
+        header {
+            background: linear-gradient(135deg, #1e3c72, #2a5298);
+            color: white;
+            padding: 25px 30px;
+            border-bottom: 5px solid #ff9a00;
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            letter-spacing: 1px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        
+        .year-title {
+            font-size: 1.8rem;
+            opacity: 0.9;
+            color: #ffd166;
+            font-weight: bold;
+        }
+        
+        .date-selector {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        
+        .date-selector label {
+            font-size: 1.1rem;
+            font-weight: 500;
+        }
+        
+        .date-input {
+            padding: 10px 15px;
+            border-radius: 8px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            background-color: rgba(255, 255, 255, 0.1);
+            color: white;
+            font-size: 1rem;
+            min-width: 200px;
+        }
+        
+        .date-input::placeholder {
+            color: rgba(255, 255, 255, 0.7);
+        }
+        
+        .main-content {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+        
+        .calendar-sidebar {
+            width: 300px;
+            background-color: #f8fafd;
+            border-right: 1px solid #eaeaea;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .month-section {
+            margin-bottom: 25px;
+        }
+        
+        .month-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #2a5298;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #e0e7ff;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .month-days {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 5px;
+        }
+        
+        .weekday-header {
+            text-align: center;
+            font-weight: 600;
+            color: #666;
+            font-size: 0.8rem;
+            padding: 5px 0;
+        }
+        
+        .day-cell {
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+            position: relative;
+        }
+        
+        .day-cell:hover {
+            background-color: #e0e7ff;
+        }
+        
+        .day-cell.selected {
+            background-color: #2a5298;
+            color: white;
+            font-weight: bold;
+        }
+        
+        .day-cell.has-events::after {
+            content: "";
+            position: absolute;
+            bottom: 2px;
+            width: 4px;
+            height: 4px;
+            background-color: #ff9a00;
+            border-radius: 50%;
+        }
+        
+        .day-cell.weekend {
+            color: #e63946;
+        }
+        
+        .day-cell.today {
+            border: 2px solid #ff9a00;
+        }
+        
+        .day-cell.empty {
+            cursor: default;
+            background-color: transparent;
+        }
+        
+        .day-cell.empty:hover {
+            background-color: transparent;
+        }
+        
+        .agenda-panel {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        
+        .selected-date-header {
+            padding: 20px 30px;
+            background-color: #f8fafd;
+            border-bottom: 1px solid #eaeaea;
+        }
+        
+        .selected-date-title {
+            font-size: 1.8rem;
+            color: #2a5298;
+            margin-bottom: 5px;
+        }
+        
+        .selected-date-weekday {
+            font-size: 1.1rem;
+            color: #666;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .agenda-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px 30px;
+        }
+        
+        .time-slots {
+            display: grid;
+            grid-template-columns: 100px 1fr;
+            grid-gap: 0;
+        }
+        
+        .time-header {
+            background-color: #f0f3f9;
+            padding: 12px 15px;
+            font-weight: bold;
+            text-align: center;
+            border-right: 2px solid #eaeaea;
+            border-bottom: 1px solid #eaeaea;
+        }
+        
+        .events-header {
+            background-color: #f0f3f9;
+            padding: 12px 15px;
+            font-weight: bold;
+            border-bottom: 1px solid #eaeaea;
+        }
+        
+        .time-slot {
+            padding: 12px 15px;
+            border-right: 2px solid #eaeaea;
+            border-bottom: 1px solid #eaeaea;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 500;
+            background-color: #f9fafc;
+        }
+        
+        .am-pm {
+            font-size: 0.8rem;
+            color: #666;
+            margin-left: 2px;
+        }
+        
+        .event-slot {
+            padding: 12px 15px;
+            border-bottom: 1px solid #eaeaea;
+            min-height: 60px;
+            transition: background-color 0.2s;
+        }
+        
+        .event-slot:hover {
+            background-color: #f8f9fa;
+        }
+        
+        .event-content {
+            width: 100%;
+            height: 100%;
+            border: none;
+            outline: none;
+            resize: none;
+            background-color: transparent;
+            font-size: 1rem;
+            color: #333;
+            line-height: 1.5;
+        }
+        
+        .event-slot.event-added {
+            background-color: rgba(255, 154, 0, 0.08);
+            border-left: 4px solid #ff9a00;
+        }
+        
+        .event-slot.highlight {
+            background-color: rgba(40, 167, 69, 0.1);
+            border-left: 4px solid #28a745;
+        }
+        
+        .agenda-controls {
+            display: flex;
+            justify-content: space-between;
+            padding: 15px 30px;
+            background-color: #f8f9fa;
+            border-top: 1px solid #eaeaea;
+        }
+        
+        .controls-left, .controls-right {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .btn {
+            padding: 10px 18px;
+            border: none;
+            border-radius: 6px;
+            background-color: #2a5298;
+            color: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s;
+            font-weight: 500;
+        }
+        
+        .btn:hover {
+            background-color: #1e3c72;
+            transform: translateY(-2px);
+        }
+        
+        .btn-print {
+            background-color: #28a745;
+        }
+        
+        .btn-print:hover {
+            background-color: #218838;
+        }
+        
+        .btn-clear-day {
+            background-color: #e63946;
+        }
+        
+        .btn-clear-day:hover {
+            background-color: #d32f2f;
+        }
+        
+        .btn-clear-year {
+            background-color: #6c757d;
+        }
+        
+        .btn-clear-year:hover {
+            background-color: #5a6268;
+        }
+        
+        .btn-today {
+            background-color: #ff9a00;
+        }
+        
+        .btn-today:hover {
+            background-color: #e68900;
+        }
+        
+        .legend {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-top: 1px solid #eaeaea;
+            flex-wrap: wrap;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9rem;
+        }
+        
+        .color-box {
+            width: 16px;
+            height: 16px;
+            border-radius: 3px;
+        }
+        
+        .color-box.orange {
+            background-color: #ff9a00;
+        }
+        
+        .color-box.blue {
+            background-color: #2a5298;
+        }
+        
+        .color-box.red {
+            background-color: #e63946;
+        }
+        
+        .events-summary {
+            padding: 10px 15px;
+            background-color: #e8f4ff;
+            border-radius: 8px;
+            margin-top: 10px;
+            font-size: 0.9rem;
+        }
+        
+        .events-summary i {
+            color: #2a5298;
+            margin-right: 8px;
+        }
+        
+        @media (max-width: 992px) {
+            .main-content {
+                flex-direction: column;
+            }
+            
+            .calendar-sidebar {
+                width: 100%;
+                max-height: 300px;
+            }
+            
+            .header-content {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .time-slots {
+                grid-template-columns: 80px 1fr;
+            }
+            
+            .time-header, .events-header {
+                padding: 10px 12px;
+                font-size: 0.9rem;
+            }
+            
+            .time-slot, .event-slot {
+                padding: 10px 12px;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .agenda-controls {
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            .controls-left, .controls-right {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            body {
+                padding: 10px;
+            }
+            
+            .container {
+                height: calc(100vh - 20px);
+            }
+            
+            .time-slots {
+                grid-template-columns: 70px 1fr;
+            }
+            
+            .day-cell {
+                width: 28px;
+                height: 28px;
+                font-size: 0.8rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="header-content">
+                <div>
+                    <h1><i class="fas fa-calendar-alt"></i> Agenda Anual 2026</h1>
+                    <div class="year-title">Planifica tu año día a día</div>
+                </div>
+                <div class="date-selector">
+                    <label for="datePicker"><i class="fas fa-calendar-day"></i> Seleccionar fecha:</label>
+                    <input type="text" id="datePicker" class="date-input" placeholder="Haz clic para elegir fecha">
+                </div>
+            </div>
+        </header>
+        
+        <div class="main-content">
+            <div class="calendar-sidebar" id="calendarSidebar">
+                <!-- Los meses se generarán con JavaScript -->
+            </div>
+            
+            <div class="agenda-panel">
+                <div class="selected-date-header">
+                    <div class="selected-date-title" id="selectedDateTitle">Jueves, 1 de Enero de 2026</div>
+                    <div class="selected-date-weekday">
+                        <span id="selectedDateInfo">Día de Año Nuevo</span>
+                        <span id="eventsCount"></span>
+                    </div>
+                    <div class="events-summary" id="eventsSummary">
+                        <i class="fas fa-info-circle"></i> Haz clic en cualquier hora para agregar o editar eventos. Los cambios se guardan automáticamente.
+                    </div>
+                </div>
+                
+                <div class="agenda-container">
+                    <div class="time-slots" id="timeSlots">
+                        <!-- Las horas se generarán con JavaScript -->
+                    </div>
+                </div>
+                
+                <div class="agenda-controls">
+                    <div class="controls-left">
+                        <button class="btn btn-today" id="todayBtn">
+                            <i class="fas fa-calendar-day"></i> Hoy
+                        </button>
+                        <button class="btn btn-clear-day" id="clearDayBtn">
+                            <i class="fas fa-trash-alt"></i> Limpiar Día
+                        </button>
+                    </div>
+                    <div class="controls-right">
+                        <button class="btn btn-clear-year" id="clearYearBtn">
+                            <i class="fas fa-broom"></i> Limpiar Año
+                        </button>
+                        <button class="btn btn-print" id="printBtn">
+                            <i class="fas fa-print"></i> Imprimir
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="legend">
+            <div class="legend-item">
+                <div class="color-box orange"></div>
+                <span>Eventos agregados</span>
+            </div>
+            <div class="legend-item">
+                <div class="color-box blue"></div>
+                <span>Día seleccionado</span>
+            </div>
+            <div class="legend-item">
+                <div class="color-box red"></div>
+                <span>Fin de semana</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Elementos DOM principales
+            const calendarSidebar = document.getElementById('calendarSidebar');
+            const timeSlots = document.getElementById('timeSlots');
+            const selectedDateTitle = document.getElementById('selectedDateTitle');
+            const selectedDateInfo = document.getElementById('selectedDateInfo');
+            const eventsCount = document.getElementById('eventsCount');
+            const eventsSummary = document.getElementById('eventsSummary');
+            const datePicker = document.getElementById('datePicker');
+            const todayBtn = document.getElementById('todayBtn');
+            const clearDayBtn = document.getElementById('clearDayBtn');
+            const clearYearBtn = document.getElementById('clearYearBtn');
+            const printBtn = document.getElementById('printBtn');
+            
+            // Fecha actual y fecha seleccionada
+            const today = new Date();
+            const currentYear = 2026;
+            let selectedDate = new Date(currentYear, 0, 1); // 1 de enero de 2026 por defecto
+            
+            // Configurar Flatpickr para el selector de fecha
+            flatpickr(datePicker, {
+                locale: "es",
+                dateFormat: "d/m/Y",
+                defaultDate: "01/01/2026",
+                minDate: "01/01/2026",
+                maxDate: "31/12/2026",
+                onChange: function(selectedDates) {
+                    if (selectedDates.length > 0) {
+                        selectedDate = selectedDates[0];
+                        updateSelectedDate();
+                        renderDayAgenda();
+                        renderCalendarSidebar();
+                    }
+                }
+            });
+            
+            // Nombres de meses y días
+            const monthNames = [
+                "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
+                "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"
+            ];
+            
+            const dayNames = [
+                "Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"
+            ];
+            
+            // Días festivos en 2026 (simplificado)
+            const holidays = {
+                "01-01": "Año Nuevo",
+                "06-01": "Día de Reyes",
+                "19-03": "San José",
+                "01-05": "Día del Trabajo",
+                "15-08": "Asunción de la Virgen",
+                "12-10": "Día de la Hispanidad",
+                "01-11": "Todos los Santos",
+                "06-12": "Día de la Constitución",
+                "08-12": "Inmaculada Concepción",
+                "25-12": "Navidad"
+            };
+            
+            // Inicializar almacenamiento de eventos
+            let eventsData = JSON.parse(localStorage.getItem('agenda2026')) || {};
+            
+            // Función para obtener clave de fecha en formato YYYY-MM-DD
+            function getDateKey(date) {
+                return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+            }
+            
+            // Función para obtener clave de hora
+            function getHourKey(date, hour) {
+                return `${getDateKey(date)}_${String(hour).padStart(2, '0')}`;
+            }
+            
+            // Función para verificar si un día tiene eventos
+            function dayHasEvents(date) {
+                const dateKey = getDateKey(date);
+                for (let hour = 0; hour < 24; hour++) {
+                    const hourKey = `${dateKey}_${String(hour).padStart(2, '0')}`;
+                    if (eventsData[hourKey] && eventsData[hourKey].trim() !== '') {
+                        return true;
+                    }
+                }
+                return false;
+            }
+            
+            // Función para contar eventos de un día
+            function countDayEvents(date) {
+                const dateKey = getDateKey(date);
+                let count = 0;
+                for (let hour = 0; hour < 24; hour++) {
+                    const hourKey = `${dateKey}_${String(hour).padStart(2, '0')}`;
+                    if (eventsData[hourKey] && eventsData[hourKey].trim() !== '') {
+                        count++;
+                    }
+                }
+                return count;
+            }
+            
+            // Función para actualizar la fecha seleccionada en la UI
+            function updateSelectedDate() {
+                const dayName = dayNames[selectedDate.getDay()];
+                const day = selectedDate.getDate();
+                const month = monthNames[selectedDate.getMonth()];
+                const year = selectedDate.getFullYear();
+                
+                selectedDateTitle.textContent = `${dayName}, ${day} de ${month} de ${year}`;
+                
+                // Verificar si es festivo
+                const monthDay = `${String(selectedDate.getMonth() + 1).padStart(2, '0')}-${String(selectedDate.getDate()).padStart(2, '0')}`;
+                const holidayName = holidays[monthDay];
+                
+                if (holidayName) {
+                    selectedDateInfo.textContent = holidayName;
+                } else if (selectedDate.getDay() === 0 || selectedDate.getDay() === 6) {
+                    selectedDateInfo.textContent = "Fin de semana";
+                } else {
+                    selectedDateInfo.textContent = "Día laborable";
+                }
+                
+                // Actualizar contador de eventos
+                const eventCount = countDayEvents(selectedDate);
+                eventsCount.innerHTML = eventCount > 0 ? 
+                    `<i class="fas fa-tasks" style="color:#ff9a00"></i> ${eventCount} evento${eventCount !== 1 ? 's' : ''} programado${eventCount !== 1 ? 's' : ''}` : 
+                    '<i class="fas fa-clipboard-list"></i> Sin eventos programados';
+            }
+            
+            // Función para renderizar el calendario lateral
+            function renderCalendarSidebar() {
+                calendarSidebar.innerHTML = '';
+                
+                for (let month = 0; month < 12; month++) {
+                    const monthSection = document.createElement('div');
+                    monthSection.className = 'month-section';
+                    
+                    const monthTitle = document.createElement('div');
+                    monthTitle.className = 'month-title';
+                    monthTitle.textContent = monthNames[month];
+                    
+                    // Añadir número de días con eventos
+                    let eventsInMonth = 0;
+                    const daysInMonth = new Date(currentYear, month + 1, 0).getDate();
+                    for (let day = 1; day <= daysInMonth; day++) {
+                        const date = new Date(currentYear, month, day);
+                        if (dayHasEvents(date)) eventsInMonth++;
+                    }
+                    
+                    if (eventsInMonth > 0) {
+                        const eventsBadge = document.createElement('span');
+                        eventsBadge.style.cssText = 'background:#ff9a00;color:white;font-size:0.8rem;padding:2px 8px;border-radius:10px;';
+                        eventsBadge.textContent = `${eventsInMonth} día${eventsInMonth !== 1 ? 's' : ''} con eventos`;
+                        monthTitle.appendChild(eventsBadge);
+                    }
+                    
+                    monthSection.appendChild(monthTitle);
+                    
+                    // Encabezados de días de la semana
+                    const weekdaysHeader = document.createElement('div');
+                    weekdaysHeader.className = 'month-days';
+                    ['L', 'M', 'X', 'J', 'V', 'S', 'D'].forEach(day => {
+                        const dayHeader = document.createElement('div');
+                        dayHeader.className = 'weekday-header';
+                        dayHeader.textContent = day;
+                        weekdaysHeader.appendChild(dayHeader);
+                    });
+                    monthSection.appendChild(weekdaysHeader);
+                    
+                    // Días del mes
+                    const monthDays = document.createElement('div');
+                    monthDays.className = 'month-days';
+                    
+                    // Primer día del mes
+                    const firstDay = new Date(currentYear, month, 1);
+                    // Día de la semana del primer día (0 = domingo, 1 = lunes, etc.)
+                    let firstDayWeekday = firstDay.getDay();
+                    // Convertir a lunes=0, domingo=6
+                    firstDayWeekday = firstDayWeekday === 0 ? 6 : firstDayWeekday - 1;
+                    
+                    // Espacios vacíos para los días antes del primer día del mes
+                    for (let i = 0; i < firstDayWeekday; i++) {
+                        const emptyDay = document.createElement('div');
+                        emptyDay.className = 'day-cell empty';
+                        monthDays.appendChild(emptyDay);
+                    }
+                    
+                    // Días del mes
+                    const daysInMonth = new Date(currentYear, month + 1, 0).getDate();
+                    
+                    for (let day = 1; day <= daysInMonth; day++) {
+                        const dayCell = document.createElement('div');
+                        dayCell.className = 'day-cell';
+                        dayCell.textContent = day;
+                        
+                        const cellDate = new Date(currentYear, month, day);
+                        
+                        // Verificar si es fin de semana
+                        const dayOfWeek = cellDate.getDay();
+                        if (dayOfWeek === 0 || dayOfWeek === 6) {
+                            dayCell.classList.add('weekend');
+                        }
+                        
+                        // Verificar si es el día seleccionado
+                        if (selectedDate.getDate() === day && 
+                            selectedDate.getMonth() === month && 
+                            selectedDate.getFullYear() === currentYear) {
+                            dayCell.classList.add('selected');
+                        }
+                        
+                        // Verificar si es hoy (solo si el año actual es 2026)
+                        if (today.getFullYear() === currentYear && 
+                            today.getMonth() === month && 
+                            today.getDate() === day) {
+                            dayCell.classList.add('today');
+                        }
+                        
+                        // Verificar si tiene eventos
+                        if (dayHasEvents(cellDate)) {
+                            dayCell.classList.add('has-events');
+                        }
+                        
+                        // Añadir evento click
+                        dayCell.addEventListener('click', function() {
+                            selectedDate = cellDate;
+                            updateSelectedDate();
+                            renderDayAgenda();
+                            renderCalendarSidebar();
+                            
+                            // Actualizar el selector de fecha
+                            datePicker._flatpickr.setDate(selectedDate);
+                        });
+                        
+                        monthDays.appendChild(dayCell);
+                    }
+                    
+                    monthSection.appendChild(monthDays);
+                    calendarSidebar.appendChild(monthSection);
+                }
+            }
+            
+            // Función para renderizar la agenda del día seleccionado
+            function renderDayAgenda() {
+                // Limpiar slots existentes
+                timeSlots.innerHTML = '';
+                
+                // Agregar encabezados
+                timeSlots.innerHTML = `
+                    <div class="time-header">Hora</div>
+                    <div class="events-header">Eventos y Notas</div>
+                `;
+                
+                // Crear slots para cada hora del día
+                for (let hour = 0; hour < 24; hour++) {
+                    // Formato de hora
+                    let displayHour = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
+                    const amPm = hour < 12 ? 'AM' : 'PM';
+                    
+                    // Crear elemento de hora
+                    const timeSlot = document.createElement('div');
+                    timeSlot.className = 'time-slot';
+                    timeSlot.textContent = `${displayHour}:00`;
+                    const amPmSpan = document.createElement('span');
+                    amPmSpan.className = 'am-pm';
+                    amPmSpan.textContent = amPm;
+                    timeSlot.appendChild(amPmSpan);
+                    
+                    // Crear elemento de evento
+                    const eventSlot = document.createElement('div');
+                    eventSlot.className = 'event-slot';
+                    
+                    // Resaltar horario laboral (9:00 - 18:00)
+                    if (hour >= 9 && hour < 18 && selectedDate.getDay() !== 0 && selectedDate.getDay() !== 6) {
+                        eventSlot.classList.add('highlight');
+                    }
+                    
+                    // Obtener evento guardado
+                    const hourKey = getHourKey(selectedDate, hour);
+                    const eventText = eventsData[hourKey] || '';
+                    
+                    // Si hay evento, marcar slot
+                    if (eventText.trim() !== '') {
+                        eventSlot.classList.add('event-added');
+                    }
+                    
+                    // Crear textarea
+                    const textarea = document.createElement('textarea');
+                    textarea.className = 'event-content';
+                    textarea.placeholder = `Agregar evento para las ${displayHour}:00 ${amPm}...`;
+                    textarea.value = eventText;
+                    
+                    // Guardar automáticamente cuando el usuario escribe
+                    textarea.addEventListener('input', function() {
+                        const hourKey = getHourKey(selectedDate, hour);
+                        
+                        if (this.value.trim() !== '') {
+                            eventSlot.classList.add('event-added');
+                            eventsData[hourKey] = this.value;
+                        } else {
+                            eventSlot.classList.remove('event-added');
+                            delete eventsData[hourKey];
+                        }
+                        
+                        // Guardar en localStorage
+                        localStorage.setItem('agenda2026', JSON.stringify(eventsData));
+                        
+                        // Actualizar calendario y contador
+                        updateSelectedDate();
+                        renderCalendarSidebar();
+                    });
+                    
+                    eventSlot.appendChild(textarea);
+                    
+                    // Agregar a la cuadrícula
+                    timeSlots.appendChild(timeSlot);
+                    timeSlots.appendChild(eventSlot);
+                }
+                
+                // Actualizar resumen de eventos
+                const eventCount = countDayEvents(selectedDate);
+                if (eventCount > 0) {
+                    eventsSummary.innerHTML = `<i class="fas fa-info-circle"></i> Tienes ${eventCount} evento${eventCount !== 1 ? 's' : ''} programado${eventCount !== 1 ? 's' : ''} para hoy.`;
+                    eventsSummary.style.backgroundColor = '#e8f4ff';
+                } else {
+                    eventsSummary.innerHTML = `<i class="fas fa-info-circle"></i> Haz clic en cualquier hora para agregar o editar eventos. Los cambios se guardan automáticamente.`;
+                    eventsSummary.style.backgroundColor = '#f8f9fa';
+                }
+            }
+            
+            // Botón "Hoy"
+            todayBtn.addEventListener('click', function() {
+                // Si estamos en 2026, ir a hoy, si no, ir al 1 de enero de 2026
+                if (today.getFullYear() === 2026) {
+                    selectedDate = new Date(today);
+                } else {
+                    selectedDate = new Date(2026, 0, 1);
+                }
+                
+                updateSelectedDate();
+                renderDayAgenda();
+                renderCalendarSidebar();
+                datePicker._flatpickr.setDate(selectedDate);
+            });
+            
+            // Botón "Limpiar Día"
+            clearDayBtn.addEventListener('click', function() {
+                if (confirm(`¿Estás seguro de que quieres eliminar todos los eventos del ${selectedDate.getDate()} de ${monthNames[selectedDate.getMonth()]}?`)) {
+                    // Eliminar todos los eventos del día seleccionado
+                    const dateKey = getDateKey(selectedDate);
+                    for (let hour = 0; hour < 24; hour++) {
+                        const hourKey = `${dateKey}_${String(hour).padStart(2, '0')}`;
+                        delete eventsData[hourKey];
+                    }
+                    
+                    // Guardar y actualizar
+                    localStorage.setItem('agenda2026', JSON.stringify(eventsData));
+                    renderDayAgenda();
+                    renderCalendarSidebar();
+                    
+                    alert('Eventos del día eliminados correctamente.');
+                }
+            });
+            
+            // Botón "Limpiar Año"
+            clearYearBtn.addEventListener('click', function() {
+                if (confirm('¿Estás seguro de que quieres eliminar TODOS los eventos de todo el año 2026? Esta acción no se puede deshacer.')) {
+                    eventsData = {};
+                    localStorage.removeItem('agenda2026');
+                    renderDayAgenda();
+                    renderCalendarSidebar();
+                    
+                    alert('Todos los eventos del año han sido eliminados.');
+                }
+            });
+            
+            // Botón "Imprimir"
+            printBtn.addEventListener('click', function() {
+                // Crear ventana de impresión
+                const printWindow = window.open('', '_blank');
+                const dateStr = `${selectedDate.getDate()} de ${monthNames[selectedDate.getMonth()]} de ${selectedDate.getFullYear()}`;
+                
+                printWindow.document.write(`
+                    <!DOCTYPE html>
+                    <html>
+                    <head>
+                        <title>Agenda - ${dateStr}</title>
+                        <style>
+                            body { font-family: Arial, sans-serif; margin: 20px; }
+                            h1 { color: #1e3c72; border-bottom: 2px solid #ff9a00; padding-bottom: 10px; }
+                            .date-info { margin-bottom: 20px; color: #666; }
+                            table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+                            th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
+                            th { background-color: #f2f2f2; }
+                            .time-column { width: 100px; font-weight: bold; }
+                            .event-added { background-color: #fff9e6; }
+                        </style>
+                    </head>
+                    <body>
+                        <h1>Agenda del ${dateStr}</h1>
+                        <div class="date-info">${dayNames[selectedDate.getDay()]}, ${dateStr}</div>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Hora</th>
+                                    <th>Eventos y Notas</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                `);
+                
+                // Agregar filas de horas
+                for (let hour = 0; hour < 24; hour++) {
+                    let displayHour = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
+                    const amPm = hour < 12 ? 'AM' : 'PM';
+                    
+                    const hourKey = getHourKey(selectedDate, hour);
+                    const eventText = eventsData[hourKey] || '';
+                    
+                    const hasEvent = eventText.trim() !== '';
+                    
+                    printWindow.document.write(`
+                        <tr class="${hasEvent ? 'event-added' : ''}">
+                            <td class="time-column">${displayHour}:00 ${amPm}</td>
+                            <td>${eventText.replace(/\n/g, '<br>')}</td>
+                        </tr>
+                    `);
+                }
+                
+                printWindow.document.write(`
+                            </tbody>
+                        </table>
+                        <p style="margin-top: 30px; font-size: 12px; color: #999;">
+                            Impreso desde Agenda Anual 2026 - ${new Date().toLocaleDateString()}
+                        </p>
+                    </body>
+                    </html>
+                `);
+                
+                printWindow.document.close();
+                printWindow.print();
+            });
+            
+            // Inicializar la aplicación
+            updateSelectedDate();
+            renderCalendarSidebar();
+            renderDayAgenda();
+        });
+    </script>
+</body>
+</html>
